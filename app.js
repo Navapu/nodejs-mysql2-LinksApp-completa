@@ -4,39 +4,61 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const { engine } = require('express-handlebars')
+const flash = require('connect-flash')
+const session = require('express-session')
+const smysql = require('express-mysql-session')
+const { database } = require('./keys')
 
 const indexRouter = require('./routes/index');
 const linksRouter = require('./routes/links');
 const authenticationRouter = require('./routes/authentication');
-const app = express();
+const passport = require('passport');
 
+const app = express();
+require('./lib/passport')
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.engine('.hbs', engine({
-  defaultLayout: 'main', 
-  layoutDir: path.join(app.get('views'), 'layaouts'),
-  partialsDir: path.join(app.get('views'), 'partials'),
+  defaultLayout: 'main',
+  layoutsDir:  path.join(app.get('views'), 'layouts'),
+  partialsDir:  path.join(app.get('views'), 'partials'),
   extname: '.hbs',
   helpers: require('./lib/handlebars')
 }))
+
 app.set('view engine', '.hbs');
 
+//Middlewares
+app.use(session({
+  secret: 'patata',
+  resave: false,
+  saveUninitialized: false,
+  store: new smysql(database)
+}))
+
+app.use(flash())
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(passport.initialize())
+app.use(passport.session())
 
 
-
+//Global Variables
 app.use((req, res, next) => {
+  app.locals.success = req.flash('success')
   next()
+
 })
+//Routes
 app.use('/', indexRouter);
+app.use('/', authenticationRouter);
 app.use('/links', linksRouter);
-app.use('/authentication', authenticationRouter)
 
 
+//Public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

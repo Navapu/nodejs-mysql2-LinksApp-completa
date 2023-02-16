@@ -28,6 +28,7 @@ router.post('/add', async (req, res) => {
 router.get('/delete/:id', async (req, res) => {
   const {id} = req.params
   await pool.query('DELETE FROM links WHERE id = ?', [id])
+  req.flash('success', 'Link removed successfully')
   res.redirect("/links")
 })
 
@@ -45,6 +46,7 @@ router.post('/edit/:id' , async (req, res) => {
     description
   }
   await pool.query('UPDATE links SET ? WHERE id = ?', [newLink, id])
+  req.flash('success', 'Link update successfully')
   res.redirect('/links')
 })
 module.exports = router;
