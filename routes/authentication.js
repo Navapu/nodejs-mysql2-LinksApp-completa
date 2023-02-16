@@ -23,5 +23,10 @@ router.get('/signup', (req, res, next) => {
   router.get('/profile', (req, res) => {
     res.send('This is your profile')
   })
-
+router.get('/signin', (req, res) => {
+  res.render('auth/signin')
+})
+router.post('/signin', (req, res) => {
+  res.send('Login correcto')
+})
 module.exports = router;
